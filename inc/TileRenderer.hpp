@@ -17,6 +17,8 @@ public:
 	}
 
 	TileRenderer(GLuint shaderProgram) {
+		vertexArray = 0;
+		texture = 0;
 		setShaderProgram(shaderProgram);
 	}
 
@@ -26,9 +28,9 @@ public:
 
 	void loadTextures(std::vector<const char*> filepaths, U32 offset = 0);
 	void rebuildTiles(Vector2<U32> chunk, Vector2<U32> loadedChunkSize);
-	void setScreenSize(Vector2f screenSize);
+	void setScreenSize(Vector2f screenSize, Vector2f framebufferSize);
 
-	void render(Vector2f offset) const;
+	void render(Vector2f offset);
 
 	/*
 	 * "U8* tiles" is intended to be managed by an arena so that the chunks can be page aligned.
@@ -78,6 +80,8 @@ public:
 
 private:
 	Vector2f tileDimensions;
+	Vector2f offsetRound;
+	Matrix4f projection;
 
 	Vector2<U32> loadedTileSize;
 	U32 loadedTileCount;
@@ -85,7 +89,7 @@ private:
 	GLuint shaderProgram;
 	GLuint texture;
 	GLuint vertexArray, vertexBuffer;
-	GLuint offsetUniform, tileDimensionsUniform, xMaskUniform, yShiftUniform;
+	GLuint offsetUniform, tileDimensionsUniform, xMaskUniform, yShiftUniform, projectionUniform;
 };
 
 #endif

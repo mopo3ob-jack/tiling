@@ -4,7 +4,7 @@ LD:=ld
 
 CFLAGS:=-O2
 CXXFLAGS:=-O2 -std=c++20
-LDFLAGS:=-lGL -lGLU -lsfml-graphics -lsfml-window -lsfml-system
+LDFLAGS:=-lGL -lGLU -lglfw
 
 SOURCES:=$(shell find src/ -name "*.c*")
 OUTPUTS:=$(SOURCES:src/%.cpp=lib/%.o)

@@ -10,10 +10,7 @@ uniform uint yShift;
 out uint g_textureIndex;
 
 void main() {
-	vec2 position = vec2(-1.0);
-
-	position += tileDimensions * vec2(gl_VertexID & xMask, gl_VertexID >> yShift);
-	position -= offset * tileDimensions;
+	vec2 position = vec2(gl_VertexID & xMask, gl_VertexID >> yShift);
 
 	gl_Position = vec4(position, 0.0, 1.0);
 

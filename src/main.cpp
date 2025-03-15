@@ -1,11 +1,11 @@
-#include <SFML/Window.hpp>
-
 #include <mstd/geometry>
 #include <mstd/misc>
 
 #include "../inc/TileRenderer.hpp"
 #include "../inc/TileShader.hpp"
 #include "../inc/stb_image.h"
+
+#include <GLFW/glfw3.h>
 
 #include <unistd.h>
 #include <sys/fcntl.h>
@@ -18,52 +18,34 @@ void __printError(const char*, Size line);
 
 using namespace mstd;
 
-static GLuint createShader(const char* filepath, GLenum type) {
-	GLuint shader = glCreateShader(type);
-
-	int shaderFile = open(filepath, O_RDONLY, 0666);
-	Size length = lseek(shaderFile, 0L, SEEK_END);
-	lseek(shaderFile, 0L, SEEK_SET);
-	char* source = mstd::alloc<char>(length + 1);
-	read(shaderFile, source, length);
-	close(shaderFile);
-
-	source[length] = '\0';
-
-	glShaderSource(shader, 1, &source, nullptr);
-	mstd::free(source);
-	glCompileShader(shader);
-	GLint status;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-	if (status == GL_FALSE) {
-		char shaderInfoLog[512];
-		glGetShaderInfoLog(shader, 511, nullptr, shaderInfoLog);
-		std::cerr << errorText << filepath << ":" << shaderInfoLog << std::endl;
-		return -1;
+static void resize(GLFWwindow* window, int width, int height) {
+	U32 newWidth = height * 4.0 / 3.0;
+	if (newWidth < width) {
+		glViewport((width - newWidth) / 2, 0, newWidth, height);
+	} else {
+		U32 newHeight = width * 3 / 4;
+		glViewport(0, (height - newHeight) / 2, width, newHeight);
 	}
-
-	return shader;
 }
 
 int main() {
-	sf::ContextSettings settings;
-	settings.depthBits = 0;
-	settings.stencilBits = 0;
-	settings.antialiasingLevel = 0;
-	settings.majorVersion = 3;
-	settings.minorVersion = 3;
-	settings.attributeFlags = settings.Core;
-	settings.sRgbCapable = true;
+	glfwInit();
+	
+	glfwWindowHint(GLFW_SAMPLES, 16);
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Tiling Renderer", monitor, nullptr);
+	glfwMakeContextCurrent(window);
 
-	sf::Window window(sf::VideoMode(640, 480), "Tile Renderer", sf::Style::Resize, settings);
-	window.setActive(true);
+	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
-	gladLoadGLLoader((GLADloadproc)sf::Context::getFunction);
+	glfwSetFramebufferSizeCallback(window, resize);
 
-	glViewport(0, 0, sf::VideoMode().width, sf::VideoMode().height);
+	glViewport(0, 0, mode->width, mode->height);
 	glClearColor(0.674509804f, 0.988235294f, 0.95686274509f, 1.0f);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_MULTISAMPLE);
 
 	TileShader shader;
 	shader.createShaderProgram("shaders/vertex.glsl", "shaders/fragment.glsl", "shaders/geometry.glsl");
@@ -81,8 +63,8 @@ int main() {
 		"textures/bl.png", "textures/bm.png", "textures/br.png",
 	});
 
-	fg.setScreenSize({16.0f, 12.0f});
-	bg.setScreenSize({32.0f, 24.0f});
+	fg.setScreenSize({16.0f, 12.0f}, {(F32)mode->width, (F32)mode->height});
+	bg.setScreenSize({32.0f, 24.0f}, {(F32)mode->width, (F32)mode->height});
 
 	U8 tiles[64 * 64];
 	memset(tiles, 0, 64 * 64);
@@ -121,6 +103,7 @@ int main() {
 
 	fg.tiles = tiles;
 	fg.rebuildTiles({}, {1, 1});
+	std::cout << "asdf\n";
 
 	memset(tiles, 0, 64 * 64);
 	for (U32 i = 0; i < 256; ++i) {
@@ -157,58 +140,57 @@ int main() {
 	bg.tiles = tiles;
 	bg.rebuildTiles({}, {1, 1});
 
-	Vector2f camera = {0};
-	sf::Clock clock;
+	Vector2f cameraPosition(0);
+	Vector2f cameraVelocity(0);
+	F32 previousTime = glfwGetTime();
 	F32 deltaTime;
-	Bool running = true;
-	while (running) {
-		deltaTime = clock.getElapsedTime().asSeconds() * 10;
-		clock.restart();
+	while (!glfwWindowShouldClose(window)) {
+		glfwPollEvents();
 
-		sf::Event event;
-		while (window.pollEvent(event)) {
-			U32 width;
-			switch (event.type) {
-			case event.Closed:
-				running = false;
-				break;
-			case event.Resized:
-				width = event.size.height * 4 / 3;
-				if (width < event.size.width) {
-					glViewport((event.size.width - width) / 2, 0, width, event.size.height);
-				} else {
-					U32 height = event.size.width * 3 / 4;
-					glViewport(0, (event.size.height - height) / 2, event.size.width, event.size.width * 3 / 4);
-				}
-				break;
-			default:
-				break;
-			}
+		deltaTime = glfwGetTime() - previousTime;
+		previousTime = glfwGetTime();
+
+		Vector2f cameraAcceleration(0);
+		if (glfwGetKey(window, GLFW_KEY_UP)) {
+			cameraAcceleration.y += 1.0;
 		}
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-			camera.y += deltaTime;
+		if (glfwGetKey(window, GLFW_KEY_DOWN)) {
+			cameraAcceleration.y -= 1.0;
 		}
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-			camera.y -= deltaTime;
+		if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
+			cameraAcceleration.x += 1.0;
 		}
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-			camera.x += deltaTime;
+		if (glfwGetKey(window, GLFW_KEY_LEFT)) {
+			cameraAcceleration.x -= 1.0;
 		}
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-			camera.x -= deltaTime;
+		if (cameraAcceleration.magnitude() > 1.0f) {
+			cameraAcceleration.normalize();
 		}
+
+		cameraAcceleration *= 4.0f; // pixels seconds^-2
+		if (cameraVelocity.magnitude() > deltaTime) {
+			Vector2f cameraFriction = cameraVelocity.normalized() * -0.3 * 9.81;
+			cameraAcceleration += cameraFriction;
+		} else {
+			cameraVelocity = Vector2f(0.0);
+		}
+
+		cameraVelocity += cameraAcceleration * deltaTime;
+		cameraPosition += 16.0f * cameraVelocity * deltaTime;
 
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		bg.render(camera);
-		fg.render(camera);
+		bg.render(cameraPosition);
+		fg.render(cameraPosition);
 
-		window.display();
+		glfwSwapBuffers(window);
 	}
+
+	glfwTerminate();
 
 	return 0;
 }

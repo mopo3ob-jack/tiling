@@ -35,8 +35,10 @@ void TileRenderer::setShaderProgram(GLuint shaderProgram) {
 	this->shaderProgram = shaderProgram;
 	offsetUniform = glGetUniformLocation(shaderProgram, "offset");
 	tileDimensionsUniform = glGetUniformLocation(shaderProgram, "tileDimensions");
+	projectionUniform = glGetUniformLocation(shaderProgram, "projection");
 	xMaskUniform = glGetUniformLocation(shaderProgram, "xMask");
 	yShiftUniform = glGetUniformLocation(shaderProgram, "yShift");
+	printError();
 }
 
 void TileRenderer::loadTextures(std::vector<const char*> filepaths, U32 offset) {
@@ -83,16 +85,20 @@ void TileRenderer::loadTextures(std::vector<const char*> filepaths, U32 offset) 
 		return;
 	}
 	
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }
 
 void TileRenderer::rebuildTiles(Vector2<U32> chunk, Vector2<U32> loadedChunkSize) {
+	printError();
 	glUseProgram(shaderProgram);
 
 	if (!vertexArray) {
 		glGenVertexArrays(1, &vertexArray);
 		glGenBuffers(1, &vertexBuffer);
+		std::cout << "Gen buffers\n";
 	}
 
 	glBindVertexArray(vertexArray);
@@ -106,20 +112,32 @@ void TileRenderer::rebuildTiles(Vector2<U32> chunk, Vector2<U32> loadedChunkSize
 	glEnableVertexAttribArray(0);
 	glVertexAttribIPointer(0, 1, GL_UNSIGNED_BYTE, sizeof(U8), (void*)0L);
 
-	printError();
 }
 
-void TileRenderer::setScreenSize(Vector2f screenSize) {
+void TileRenderer::setScreenSize(Vector2f screenSize, Vector2f framebufferSize) {
 	tileDimensions = {2.0f / screenSize.w, 2.0f / screenSize.h};
+	offsetRound = framebufferSize;
+	offsetRound.x *= tileDimensions.x / 8.0f;
+	offsetRound.y *= tileDimensions.y / 4.0f;
+
+	projection = {
+		{tileDimensions.x, 0.0, 0.0, 0.0},
+		{0.0, tileDimensions.y, 0.0, 0.0},
+		{0.0, 0.0, 1.0, 0.0},
+		{0.0, 0.0, 0.0, 1.0}
+	};
 }
 
-void TileRenderer::render(Vector2f offset) const {
+void TileRenderer::render(Vector2f offset) {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 
 	glUseProgram(shaderProgram);
 	glUniform2f(offsetUniform, offset.x, offset.y);
 	glUniform2f(tileDimensionsUniform, tileDimensions.x, tileDimensions.y);
+	projection.data[0][3] = -offset.x * tileDimensions.x;
+	projection.data[1][3] = -offset.y * tileDimensions.y;
+	glUniformMatrix4fv(projectionUniform, 1, GL_TRUE, (GLfloat*)&projection.data);
 	glUniform1i(xMaskUniform, loadedTileSize.w - 1);
 	glUniform1ui(yShiftUniform, sizeof(loadedTileSize.w) * 8 - __builtin_clz(loadedTileSize.w - 1));
 
