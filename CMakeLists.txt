@@ -9,10 +9,11 @@ project(
 include(GNUInstallDirs)
 include(FetchContent)
 
-FetchContent_Declare(
-	mstd
-	GIT_REPOSITORY https://github.com/mopo3ob-jack/mstd
-)
+#FetchContent_Declare(mstd GIT_REPOSITORY https://github.com/mopo3ob-jack/mstd)
+#FetchContent_MakeAvailable(mstd)
+
+#FetchContent_Declare(glfw GIT_REPOSITORY https://github.com/glfw/glfw)
+#FetchContent_MakeAvailable(glfw)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -24,7 +25,7 @@ target_include_directories(tiling PUBLIC inc/)
 target_link_libraries(tiling PRIVATE glfw GLU)
 set_target_properties(tiling PROPERTIES CXX_STANDARD 20)
 
-set(BUILD_TESTS TRUE CACHE BOOL "Build library tests")
-if (${BUILD_TESTS})
+set(TILING_BUILD_TESTS TRUE CACHE BOOL "Build tiling test programs")
+if (${TILING_BUILD_TESTS})
 	add_subdirectory("tests/panels")
 endif()
