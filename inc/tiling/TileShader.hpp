@@ -1,7 +1,7 @@
 #ifndef TILESHADER_HPP
 #define TILESHADER_HPP
 
-#include "glad/glad.h"
+#include <glad/glad.h>
 
 class TileShader {
 public:

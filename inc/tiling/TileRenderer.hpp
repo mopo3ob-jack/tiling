@@ -1,7 +1,7 @@
 #ifndef TILERENDERER_HPP
 #define TILERENDERER_HPP
 
-#include "../inc/glad/glad.h"
+#include <glad/glad.h>
 
 #include <vector>
 #include <mstd/memory>

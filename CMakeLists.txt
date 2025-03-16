@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 project(
-	"tiling" VERSION 1.0.0
+	tiling VERSION 1.0.0
 	DESCRIPTION "OpenGL tile renderer"
 	HOMEPAGE_URL "https://github.com/mopo3ob-jack/tiling"
 )
@@ -13,13 +13,18 @@ FetchContent_Declare(
 	mstd
 	GIT_REPOSITORY https://github.com/mopo3ob-jack/mstd
 )
-FetchContent_MakeAvailable(SFML mstd)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_executable(tiling src/main.cpp)
-target_include_directories(tiling PRIVATE ${CMAKE_INCLUDE_DIRECTORY})
-target_sources(tiling PRIVATE src/TileRenderer.cpp)
+file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "inc" "*.hpp" "*.h")
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src" "*.cpp" "*.c")
 
-target_link_libraries(tiling PRIVATE glfw)
-target_link_libraries(tiling PRIVATE mstd)
+add_library(tiling ${SOURCES})
+target_include_directories(tiling PUBLIC inc/)
+target_link_libraries(tiling PRIVATE glfw GLU)
+set_target_properties(tiling PROPERTIES CXX_STANDARD 20)
+
+set(BUILD_TESTS TRUE CACHE BOOL "Build library tests")
+if (${BUILD_TESTS})
+	add_subdirectory("tests/panels")
+endif()

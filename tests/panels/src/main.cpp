@@ -1,9 +1,9 @@
 #include <mstd/geometry>
 #include <mstd/misc>
 
-#include "../inc/TileRenderer.hpp"
-#include "../inc/TileShader.hpp"
-#include "../inc/stb_image.h"
+#include <tiling/TileRenderer.hpp>
+#include <tiling/TileShader.hpp>
+#include <tiling/stb_image.h>
 
 #include <GLFW/glfw3.h>
 
@@ -103,7 +103,6 @@ int main() {
 
 	fg.tiles = tiles;
 	fg.rebuildTiles({}, {1, 1});
-	std::cout << "asdf\n";
 
 	memset(tiles, 0, 64 * 64);
 	for (U32 i = 0; i < 256; ++i) {

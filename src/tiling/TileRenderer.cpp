@@ -1,7 +1,7 @@
-#include "../inc/TileRenderer.hpp"
-#include "../inc/stb_image.h"
+#include <tiling/TileRenderer.hpp>
+#include <tiling/stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "../inc/stb_image_write.h"
+#include <tiling/stb_image_write.h>
 #include <mstd/misc>
 #include <random>
 
@@ -98,7 +98,6 @@ void TileRenderer::rebuildTiles(Vector2<U32> chunk, Vector2<U32> loadedChunkSize
 	if (!vertexArray) {
 		glGenVertexArrays(1, &vertexArray);
 		glGenBuffers(1, &vertexBuffer);
-		std::cout << "Gen buffers\n";
 	}
 
 	glBindVertexArray(vertexArray);
