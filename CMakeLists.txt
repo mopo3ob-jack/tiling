@@ -7,13 +7,23 @@ project(
 )
 
 include(GNUInstallDirs)
-include(FetchContent)
+include(ExternalProject)
 
-#FetchContent_Declare(mstd GIT_REPOSITORY https://github.com/mopo3ob-jack/mstd)
-#FetchContent_MakeAvailable(mstd)
+set(INSTALL_LOCATION ${CMAKE_BINARY_DIR}/deps)
 
-#FetchContent_Declare(glfw GIT_REPOSITORY https://github.com/glfw/glfw)
-#FetchContent_MakeAvailable(glfw)
+ExternalProject_Add(
+	mstd-download
+	GIT_REPOSITORY https://github.com/mopo3ob-jack/mstd.git
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${INSTALL_LOCATION}
+)
+set_target_properties(mstd-download PROPERTIES OUTPUT_NAME mstd)
+
+ExternalProject_Add(
+	glfw-download
+	GIT_REPOSITORY https://github.com/glfw/glfw.git
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${INSTALL_LOCATION}
+)
+set_target_properties(glfw-download PROPERTIES OUTPUT_NAME glfw)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -21,7 +31,8 @@ file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "inc" "*.hpp" "*.h")
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src" "*.cpp" "*.c")
 
 add_library(tiling ${SOURCES})
-target_include_directories(tiling PUBLIC inc/)
+target_include_directories(tiling PUBLIC inc/ ${INSTALL_LOCATION}/include)
+target_link_directories(tiling PUBLIC ${INSTALL_LOCATION}/include)
 target_link_libraries(tiling PRIVATE glfw GLU)
 set_target_properties(tiling PROPERTIES CXX_STANDARD 20)
 
