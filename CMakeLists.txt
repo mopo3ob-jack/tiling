@@ -16,21 +16,24 @@ ExternalProject_Add(
 	GIT_REPOSITORY https://github.com/mopo3ob-jack/mstd.git
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${INSTALL_LOCATION}
 )
-set_target_properties(mstd-download PROPERTIES OUTPUT_NAME mstd)
 
 ExternalProject_Add(
 	glfw-download
 	GIT_REPOSITORY https://github.com/glfw/glfw.git
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${INSTALL_LOCATION}
 )
-set_target_properties(glfw-download PROPERTIES OUTPUT_NAME glfw)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "inc" "*.hpp" "*.h")
-file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src" "*.cpp" "*.c")
 
-add_library(tiling ${SOURCES})
+add_library(
+	tiling
+	src/glad/glad.c
+	src/tiling/stb_image.cpp
+	src/tiling/TileShader.cpp
+	src/tiling/TileRenderer.cpp
+)
 target_include_directories(tiling PUBLIC inc/ ${INSTALL_LOCATION}/include)
 target_link_directories(tiling PUBLIC ${INSTALL_LOCATION}/include)
 target_link_libraries(tiling PRIVATE glfw GLU)
