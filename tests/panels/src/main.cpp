@@ -12,10 +12,6 @@
 #include <random>
 #include <GL/glu.h>
 
-#define printError() __printError(__FILE__, __LINE__)
-
-void __printError(const char*, Size line);
-
 using namespace mstd;
 
 static void resize(GLFWwindow* window, int width, int height) {
@@ -66,21 +62,24 @@ int main() {
 	fg.setScreenSize({16.0f, 12.0f}, {(F32)mode->width, (F32)mode->height});
 	bg.setScreenSize({32.0f, 24.0f}, {(F32)mode->width, (F32)mode->height});
 
-	U8 tiles[64 * 64];
-	memset(tiles, 0, 64 * 64);
+	U16 tiles[64 * 32];
+	std::memset(tiles, 0, 64 * 32 * 2);
 
-	for (U32 i = 0; i < 256; ++i) {
+	for (U32 i = 0; i < 128; ++i) {
 		std::default_random_engine engine(clock());
-		std::uniform_int_distribution pos(0, 62);
+		std::uniform_int_distribution posX(0, 62);
+		std::uniform_int_distribution posY(0, 30);
 		std::uniform_int_distribution size(1, 4);
 
-		pos(engine); // Burn a predictable random value.
-		U32 startX = pos(engine);
-		U32 startY = pos(engine);
+		posX(engine); // Burn a predictable random value.
+		posY(engine);
+		size(engine);
+		U32 startX = posX(engine);
+		U32 startY = posY(engine);
 		U32 endX = startX + size(engine);
 		U32 endY = startY + size(engine);
 		if (endX > 63) endX = 63;
-		if (endY > 63) endY = 63;
+		if (endY > 31) endY = 31;
 
 		tiles[startY * 64 + startX] = 7;
 		for (U32 x = startX + 1; x < endX; ++x) {
@@ -104,19 +103,22 @@ int main() {
 	fg.tiles = tiles;
 	fg.rebuildTiles({}, {1, 1});
 
-	memset(tiles, 0, 64 * 64);
-	for (U32 i = 0; i < 256; ++i) {
+	std::memset(tiles, 0, 64 * 32 * 2);
+	for (U32 i = 0; i < 128; ++i) {
 		std::default_random_engine engine(clock());
-		std::uniform_int_distribution pos(0, 62);
+		std::uniform_int_distribution posX(0, 62);
+		std::uniform_int_distribution posY(0, 30);
 		std::uniform_int_distribution size(1, 4);
 
-		pos(engine); // Burn a predictable random value.
-		U32 startX = pos(engine);
-		U32 startY = pos(engine);
+		posX(engine); // Burn a predictable random value.
+		posY(engine);
+		size(engine);
+		U32 startX = posX(engine);
+		U32 startY = posY(engine);
 		U32 endX = startX + size(engine);
 		U32 endY = startY + size(engine);
 		if (endX > 63) endX = 63;
-		if (endY > 63) endY = 63;
+		if (endY > 31) endY = 31;
 
 		tiles[startY * 64 + startX] = 7;
 		for (U32 x = startX + 1; x < endX; ++x) {
@@ -136,6 +138,7 @@ int main() {
 		}
 		tiles[endY * 64 + endX] = 3;
 	}
+
 	bg.tiles = tiles;
 	bg.rebuildTiles({}, {1, 1});
 
@@ -171,9 +174,9 @@ int main() {
 		}
 
 		cameraAcceleration *= 4.0f; // pixels seconds^-2
-		if (cameraVelocity.magnitude() > deltaTime) {
-			Vector2f cameraFriction = cameraVelocity.normalized() * -0.3 * 9.81;
-			cameraAcceleration += cameraFriction;
+		Vector2f cameraFriction = cameraVelocity.normalized() * -0.3 * 9.81 * deltaTime;
+		if (cameraVelocity.magnitude() > cameraFriction.magnitude()) {
+			cameraVelocity += cameraFriction;
 		} else {
 			cameraVelocity = Vector2f(0.0);
 		}
@@ -192,11 +195,4 @@ int main() {
 	glfwTerminate();
 
 	return 0;
-}
-
-void __printError(const char* file, Size line) {
-	GLenum error = glGetError();
-	if (error != GL_NO_ERROR) {
-		std::cerr << errorText << file << "(" << line << "): " << gluErrorString(error) << std::endl;
-	}
 }

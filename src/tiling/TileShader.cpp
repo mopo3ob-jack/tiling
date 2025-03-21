@@ -8,8 +8,6 @@
 
 using namespace mstd;
 
-#define printError() __printError(__FILE__, __LINE__)
-
 void __printError(const char*, Size line);
 
 static GLuint createShader(const char* filepath, GLenum type) {

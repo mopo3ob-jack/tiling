@@ -33,11 +33,9 @@ public:
 	void render(Vector2f offset);
 
 	/*
-	 * "U8* tiles" is intended to be managed by an arena so that the chunks can be page aligned.
-	 * Chunks are 64 x 64 tiles in size. This results in 4096 byte chunks that can be 
-	 * pre-cached by the kernel at will. Should you wish to have more than 256 textures per
-	 * area, I recommend creating tile maps that allow for swapping of small sections of texture
-	 * sets without disrupting crucial textures.
+	 * "U16* tiles" is intended to be managed by an arena so that the chunks can be page aligned.
+	 * Chunks are 64 x 32 tiles in size. This results in 4096 byte chunks that can be 
+	 * pre-cached by the kernel at will.
 	 *
 	 * This is all assuming the page size is 4 KiB and not 1 MiB.
 	 *
@@ -63,8 +61,8 @@ public:
 	 *
 	 *  With each individual chunk looking like:
 	 *
-	 *	0   1   2   3   4   ...   63
-	 *	64  65  66  67  68  ...   127
+	 *	0   2   4   8   16  ...   63
+	 *	64  66  68  70  72  ...   127
 	 *	128 .   
 	 *	192     .  
 	 *	256         .
@@ -73,7 +71,7 @@ public:
 	 *	.
 	 *	4032 ...                  4095
 	 */
-	U8* tiles;
+	U16* tiles;
 
 	static constexpr Size chunkWidth = 64;
 	static constexpr Size chunkSizeBytes = 4096;

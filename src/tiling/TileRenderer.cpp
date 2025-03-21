@@ -5,9 +5,6 @@
 #include <mstd/misc>
 #include <random>
 
-#define printError() __printError(__FILE__, __LINE__)
-void __printError(const char* file, Size line);
-
 #include <iostream>
 
 std::default_random_engine engine(clock());
@@ -38,7 +35,6 @@ void TileRenderer::setShaderProgram(GLuint shaderProgram) {
 	projectionUniform = glGetUniformLocation(shaderProgram, "projection");
 	xMaskUniform = glGetUniformLocation(shaderProgram, "xMask");
 	yShiftUniform = glGetUniformLocation(shaderProgram, "yShift");
-	printError();
 }
 
 void TileRenderer::loadTextures(std::vector<const char*> filepaths, U32 offset) {
@@ -92,7 +88,6 @@ void TileRenderer::loadTextures(std::vector<const char*> filepaths, U32 offset) 
 }
 
 void TileRenderer::rebuildTiles(Vector2<U32> chunk, Vector2<U32> loadedChunkSize) {
-	printError();
 	glUseProgram(shaderProgram);
 
 	if (!vertexArray) {
@@ -103,13 +98,13 @@ void TileRenderer::rebuildTiles(Vector2<U32> chunk, Vector2<U32> loadedChunkSize
 	glBindVertexArray(vertexArray);
 
 	loadedTileSize = loadedChunkSize * chunkWidth;
-	loadedTileCount = loadedTileSize.w * loadedTileSize.h;
+	loadedTileCount = loadedTileSize.w * loadedTileSize.h / 2;
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, loadedTileCount * sizeof(U8), tiles, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, loadedTileCount * sizeof(U16), tiles, GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribIPointer(0, 1, GL_UNSIGNED_BYTE, sizeof(U8), (void*)0L);
+	glVertexAttribIPointer(0, 1, GL_UNSIGNED_SHORT, sizeof(U16), (void*)0L);
 
 }
 
