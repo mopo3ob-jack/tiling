@@ -7,8 +7,6 @@
 
 #include <GLFW/glfw3.h>
 
-#include <unistd.h>
-#include <sys/fcntl.h>
 #include <random>
 #include <GL/glu.h>
 
