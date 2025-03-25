@@ -2,23 +2,20 @@
 
 #include <mstd/memory>
 #include <mstd/misc>
-#include <sys/fcntl.h>
-#include <unistd.h>
 #include <iostream>
+#include <fstream>
 
 using namespace mstd;
 
-void __printError(const char*, Size line);
-
-static GLuint createShader(const char* filepath, GLenum type) {
+static GLuint createShader(const C8* filepath, GLenum type) {
 	GLuint shader = glCreateShader(type);
 
-	int shaderFile = open(filepath, O_RDONLY, 0666);
-	Size length = lseek(shaderFile, 0L, SEEK_END);
-	lseek(shaderFile, 0L, SEEK_SET);
-	char* source = mstd::alloc<char>(length + 1);
-	read(shaderFile, source, length);
-	close(shaderFile);
+	std::ifstream shaderFile = std::ifstream(filepath);
+	Size length = shaderFile.seekg(0L, std::ios::end).tellg();
+	shaderFile.seekg(0L, std::ios::beg);
+	C8* source = mstd::alloc<C8>(length + 1);
+	shaderFile.read(source, length);
+	shaderFile.close();
 
 	source[length] = '\0';
 
