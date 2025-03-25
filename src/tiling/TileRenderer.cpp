@@ -7,13 +7,11 @@
 
 #include <iostream>
 
-std::default_random_engine engine(clock());
-
-U16 getRandom(U16 a, U16 b) {
-	std::uniform_int_distribution distrib(0, 1);
-
-	return distrib(engine) ? a : b;
-}
+#ifdef _WIN32
+#define clz(x) __lzcnt(x)
+#else
+#define clz(x) __builtin_clz(x)
+#endif
 
 TileRenderer::~TileRenderer() {
 	if (texture) {
@@ -133,7 +131,7 @@ void TileRenderer::render(Vector2f offset) {
 	projection.data[1][3] = -offset.y * tileDimensions.y;
 	glUniformMatrix4fv(projectionUniform, 1, GL_TRUE, (GLfloat*)&projection.data);
 	glUniform1i(xMaskUniform, loadedTileSize.w - 1);
-	glUniform1ui(yShiftUniform, sizeof(loadedTileSize.w) * 8 - __builtin_clz(loadedTileSize.w - 1));
+	glUniform1ui(yShiftUniform, sizeof(loadedTileSize.w) * 8 - clz(loadedTileSize.w - 1));
 
 	glBindVertexArray(vertexArray);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
