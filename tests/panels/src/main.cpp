@@ -64,7 +64,7 @@ int main() {
 	std::memset(tiles, 0, 64 * 32 * 2);
 
 	for (U32 i = 0; i < 128; ++i) {
-		std::default_random_engine engine(clock());
+		std::mt19937_64 engine(glfwGetTime() * 1e6);
 		std::uniform_int_distribution posX(0, 62);
 		std::uniform_int_distribution posY(0, 30);
 		std::uniform_int_distribution size(1, 4);
@@ -103,7 +103,7 @@ int main() {
 
 	std::memset(tiles, 0, 64 * 32 * 2);
 	for (U32 i = 0; i < 128; ++i) {
-		std::default_random_engine engine(clock());
+		std::mt19937 engine(glfwGetTime() * 1e6);
 		std::uniform_int_distribution posX(0, 62);
 		std::uniform_int_distribution posY(0, 30);
 		std::uniform_int_distribution size(1, 4);

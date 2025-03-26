@@ -9,6 +9,8 @@ project(
 include(GNUInstallDirs)
 include(ExternalProject)
 
+find_package(OpenGL REQUIRED)
+
 set(INSTALL_LOCATION ${CMAKE_BINARY_DIR}/deps)
 
 ExternalProject_Add(
@@ -34,9 +36,10 @@ add_library(
 	src/tiling/TileShader.cpp
 	src/tiling/TileRenderer.cpp
 )
+add_dependencies(tiling mstd-download glfw-download)
 target_include_directories(tiling PUBLIC inc/ ${INSTALL_LOCATION}/include)
-target_link_directories(tiling PUBLIC ${INSTALL_LOCATION}/include)
-target_link_libraries(tiling PRIVATE glfw GLU)
+target_link_directories(tiling PUBLIC ${INSTALL_LOCATION}/lib)
+target_link_libraries(tiling PRIVATE glfw3 OpenGL::GL OpenGL::GLU)
 set_target_properties(tiling PROPERTIES CXX_STANDARD 20)
 
 set(TILING_BUILD_TESTS TRUE CACHE BOOL "Build tiling test programs")
