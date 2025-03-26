@@ -31,6 +31,9 @@ int main() {
 	GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Tiling Renderer", monitor, nullptr);
 	glfwMakeContextCurrent(window);
 
+	bool isFullscreen = true;
+	bool f11Down = false;
+
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
 	glfwSetFramebufferSizeCallback(window, resize);
@@ -149,6 +152,27 @@ int main() {
 
 		deltaTime = glfwGetTime() - previousTime;
 		previousTime = glfwGetTime();
+
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
+			break;
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_F11) == GLFW_PRESS) {
+			if (f11Down == false) {
+				if (isFullscreen) {
+					glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, 0);
+				}
+				else {
+					glfwSetWindowMonitor(window, nullptr, mode->width / 2 - 400, mode->height / 2 - 300, 800, 600, 0);
+				}
+
+				isFullscreen = !isFullscreen;
+			}
+			
+			f11Down = true;
+		} else {
+			f11Down = false;
+		}
 
 		Vector2f cameraAcceleration(0);
 		if (glfwGetKey(window, GLFW_KEY_UP)) {
